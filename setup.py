@@ -19,7 +19,7 @@
 
 Installation command:
 
-	pip install [--user] [--editable] .
+    pip install [--user] [--editable] .
 """
 
 from __future__ import print_function, absolute_import
@@ -42,7 +42,7 @@ if os.environ.get('READTHEDOCS', None) == 'True':
         def __getattr__(cls, name):
             return Mock()
 
-    MOCK_MODULES = ['builtins', 'future', 'scipy', 
+    MOCK_MODULES = ['builtins', 'future', 'scipy',
                     'numpy', 'odlpp', 'numpy.distutils']
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
     requires = ''
@@ -52,6 +52,7 @@ else:
     numpy >= 1.8
     scipy >= 0.14
     """
+
 
 class PyTest(TestCommand):
     user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
@@ -71,7 +72,7 @@ class PyTest(TestCommand):
         errno = pytest.main(self.pytest_args)
         sys.exit(errno)
 
-setup(name='odl',
+setup(name='odl.core',
       version=__version__,
       author='ODL development group',
       author_email='kohr@kth.se, jonasadl@kth.se',

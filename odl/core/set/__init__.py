@@ -15,13 +15,26 @@
 # You should have received a copy of the GNU General Public License
 # along with ODL.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Core Spaces and set support."""
+
+# TODO: write an introduction
+
 from __future__ import absolute_import
 
-from pkgutil import extend_path
-__path__ = extend_path(__path__, __name__)
+__all__ = ()
 
-__all__ = ('core',)
+from . import domain
+from .domain import *
+__all__ += domain.__all__
 
-from . import core
-from .core import *
-__all__ += core.__all__
+from . import pspace
+from .pspace import *
+__all__ += pspace.__all__
+
+from . import sets
+from .sets import *
+__all__ += sets.__all__
+
+from . import space
+from .space import *
+__all__ += space.__all__
