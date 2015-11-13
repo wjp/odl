@@ -30,10 +30,10 @@ from builtins import str, super
 import numpy as np
 
 # ODL imports
-from odl.operator.operator import Operator
-from odl.set.domain import IntervalProd
-from odl.set.sets import RealNumbers, ComplexNumbers, Set
-from odl.set.space import LinearSpace
+from odl.core.operator.operator import Operator
+from odl.core.set.domain import IntervalProd
+from odl.core.set.sets import RealNumbers, ComplexNumbers, Set
+from odl.core.set.space import LinearSpace
 
 
 __all__ = ('FunctionSet', 'FunctionSpace')

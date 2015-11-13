@@ -26,8 +26,8 @@ standard_library.install_aliases()
 import numpy as np
 
 # ODL imports
-from odl.set.sets import Set, RealNumbers
-from odl.util.utility import array1d_repr
+from odl.core.set.sets import Set, RealNumbers
+from odl.core.util.utility import array1d_repr
 
 
 __all__ = ('IntervalProd', 'Interval', 'Rectangle', 'Cuboid')
@@ -502,7 +502,7 @@ class IntervalProd(Set):
                [-1. ,  3. ,  0.5],
                [-0.5,  3. ,  0.5]])
         """
-        from odl.discr.grid import TensorGrid
+        from odl.core.discr.grid import TensorGrid
         if order not in ('C', 'F'):
             raise ValueError('order {} not understood.'.format(order))
 
@@ -588,7 +588,7 @@ class IntervalProd(Set):
             return type(self)(np.minimum(vec1, vec2), np.maximum(vec1, vec2))
         else:
             return NotImplemented
-        
+
     __rtruediv__ = __rdiv__
 
     def __repr__(self):

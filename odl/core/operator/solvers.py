@@ -22,15 +22,15 @@ from __future__ import print_function, division, absolute_import
 from future import standard_library
 standard_library.install_aliases()
 from builtins import next, object, range
-from odl.util.utility import with_metaclass
 
 # External
 from abc import ABCMeta, abstractmethod
 from math import log, ceil
 
 # Internal
-from odl.operator.operator import OperatorComp, OperatorSum
-from odl.operator.default_ops import IdentityOperator
+from odl.core.operator.default_ops import IdentityOperator
+from odl.core.operator.operator import OperatorComp, OperatorSum
+from odl.core.util.utility import with_metaclass
 
 
 class Partial(with_metaclass(ABCMeta, object)):

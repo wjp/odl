@@ -17,7 +17,6 @@
 
 """Utilities for internal use."""
 
-
 # Imports for common Python 2/3 codebase
 from __future__ import print_function, division, absolute_import
 
@@ -25,7 +24,7 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import str
 
-# External module imports
+# External
 import numpy as np
 
 __all__ = ('array1d_repr', 'array1d_str', 'arraynd_repr', 'arraynd_str',
@@ -108,13 +107,13 @@ def with_metaclass(meta, *bases):
     Function from jinja2/_compat.py. License: BSD.
 
     Use it like this::
-        
+
         class BaseForm(object):
             pass
-        
+
         class FormType(type):
             pass
-        
+
         class Form(with_metaclass(FormType, BaseForm)):
             pass
 
@@ -124,7 +123,7 @@ def with_metaclass(meta, *bases):
     we also need to make sure that we downgrade the custom metaclass
     for one level to something closer to type (that's why __call__ and
     __init__ comes back from type etc.).
-    
+
     This has the advantage over six.with_metaclass of not introducing
     dummy classes into the final MRO.
     """

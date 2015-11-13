@@ -32,9 +32,9 @@ from builtins import range, super, str, zip
 import numpy as np
 
 # ODL imports
-from odl.set.domain import IntervalProd
-from odl.set.sets import Set, Integers
-from odl.util.utility import array1d_repr, array1d_str
+from odl.core.set.domain import IntervalProd
+from odl.core.set.sets import Set, Integers
+from odl.core.util.utility import array1d_repr, array1d_str
 
 
 __all__ = ('TensorGrid', 'RegularGrid', 'uniform_sampling')

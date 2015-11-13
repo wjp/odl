@@ -220,18 +220,17 @@ See Wikipedia's mathematical overview articles
 
 # Imports for common Python 2/3 codebase
 from __future__ import print_function, division, absolute_import
-
-from builtins import object, range, str
 from future import standard_library
 standard_library.install_aliases()
-from odl.util.utility import with_metaclass
+from builtins import object, range, str
 
 # External module imports
 from abc import ABCMeta, abstractmethod, abstractproperty
 import math as m
 
 # ODL imports
-from odl.set.sets import Set, UniversalSet
+from odl.core.set.sets import Set, UniversalSet
+from odl.core.util.utility import with_metaclass
 
 
 __all__ = ('LinearSpace',)
@@ -769,7 +768,7 @@ class LinearSpace(Set):
             >>> x.T(y)
             13.0
             """
-            from odl.operator.default_ops import InnerProductOperator
+            from odl.core.operator.default_ops import InnerProductOperator
             return InnerProductOperator(self.copy())
 
 

@@ -23,7 +23,6 @@ from __future__ import print_function, division, absolute_import
 from future import standard_library
 standard_library.install_aliases()
 from builtins import super, str, zip
-from odl.util.utility import with_metaclass
 
 # External imports
 from abc import ABCMeta
@@ -32,11 +31,12 @@ from scipy.interpolate import interpnd, RegularGridInterpolator
 from scipy.interpolate.interpnd import _ndim_coords_from_arrays
 
 # ODL imports
-from odl.discr.grid import TensorGrid
-from odl.operator.operator import Operator
-from odl.space.base_ntuples import NtuplesBase, FnBase
-from odl.space.fspace import FunctionSet, FunctionSpace
-from odl.set.domain import IntervalProd
+from odl.core.discr.grid import TensorGrid
+from odl.core.operator.operator import Operator
+from odl.core.space.base_ntuples import NtuplesBase, FnBase
+from odl.core.space.fspace import FunctionSet, FunctionSpace
+from odl.core.set.domain import IntervalProd
+from odl.core.util.utility import with_metaclass
 
 
 __all__ = ('FunctionSetMapping',

@@ -62,10 +62,9 @@ import platform
 import scipy as sp
 
 # ODL imports
-from odl.operator.operator import Operator
-from odl.space.base_ntuples import NtuplesBase, FnBase, _FnWeightingBase
-from odl.util.utility import (dtype_repr, is_real_dtype, is_complex_dtype,
-                              with_metaclass)
+from odl.core.operator.operator import Operator
+from odl.core.space.base_ntuples import NtuplesBase, FnBase, _FnWeightingBase
+from odl.core.util.utility import dtype_repr, is_real_dtype, is_complex_dtype
 
 
 __all__ = ('Ntuples', 'Fn', 'Cn', 'Rn',

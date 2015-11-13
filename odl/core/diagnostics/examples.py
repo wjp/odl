@@ -21,15 +21,17 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import range, zip
 
-import warnings
-import numpy as np
+# External
 from itertools import product
+import numpy as np
+import warnings
 
-from odl.set.sets import RealNumbers, ComplexNumbers
-from odl.set.space import LinearSpace
-from odl.set.pspace import ProductSpace
-from odl.space.base_ntuples import FnBase
-from odl.discr.lp_discr import DiscreteLp
+# Internal
+from odl.core.set.sets import RealNumbers, ComplexNumbers
+from odl.core.set.space import LinearSpace
+from odl.core.set.pspace import ProductSpace
+from odl.core.space.base_ntuples import FnBase
+from odl.core.discr.lp_discr import DiscreteLp
 
 
 __all__ = ('scalar_examples', 'vector_examples', 'samples')
@@ -131,7 +133,8 @@ def vector_examples(space):
 
                 return s
 
-            yield ('Grad all', space.element(uspace.element(_all_gradient_fun)))
+            yield ('Grad all',
+                   space.element(uspace.element(_all_gradient_fun)))
 
     elif isinstance(space, FnBase):
         rand_state = np.random.get_state()

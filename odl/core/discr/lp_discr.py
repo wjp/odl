@@ -31,15 +31,15 @@ from builtins import super, str
 import numpy as np
 
 # ODL
-from odl.discr.discretization import Discretization, dspace_type
-from odl.discr.discr_mappings import GridCollocation, NearestInterpolation
-from odl.discr.grid import uniform_sampling
-from odl.set.domain import IntervalProd
-from odl.space.ntuples import Fn
-from odl.space.fspace import FunctionSpace
-from odl.space import CUDA_AVAILABLE
+from odl.core.discr.discretization import Discretization, dspace_type
+from odl.core.discr.discr_mappings import GridCollocation, NearestInterpolation
+from odl.core.discr.grid import uniform_sampling
+from odl.core.set.domain import IntervalProd
+from odl.core.space.ntuples import Fn
+from odl.core.space.fspace import FunctionSpace
+from odl.core.space import CUDA_AVAILABLE
 if CUDA_AVAILABLE:
-    from odl.space.cu_ntuples import CudaFn
+    from odl.core.space.cu_ntuples import CudaFn
 else:
     CudaFn = type(None)
 
@@ -342,7 +342,7 @@ class DiscreteLp(Discretization):
             matplotlib.pyplot.scatter : Show scattered 3d points
             """
 
-            from odl.util.graphics import show_discrete_function
+            from odl.core.util.graphics import show_discrete_function
             show_discrete_function(self, method=method, title=title,
                                    **kwargs)
 

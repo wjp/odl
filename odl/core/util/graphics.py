@@ -24,12 +24,12 @@ from __future__ import print_function, division, absolute_import
 from future import standard_library
 standard_library.install_aliases()
 
-# ODL
-from odl.util.utility import is_complex_dtype
-
-# External module imports
-import numpy as np
+# External
 from matplotlib import pyplot as plt
+import numpy as np
+
+# Internal
+from odl.core.util.utility import is_complex_dtype
 
 
 __all__ = ('show_discrete_function',)

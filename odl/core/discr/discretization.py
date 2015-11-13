@@ -23,21 +23,21 @@ from __future__ import print_function, division, absolute_import
 from future import standard_library
 standard_library.install_aliases()
 from builtins import super
-from odl.util.utility import with_metaclass
 
 # External
 from abc import ABCMeta
 
 # ODL
-from odl.util.utility import arraynd_repr, arraynd_str
-from odl.operator.operator import Operator
-from odl.space.base_ntuples import NtuplesBase, FnBase
-from odl.space.ntuples import Ntuples, Rn, Cn
-from odl.set.sets import Set, RealNumbers, ComplexNumbers
-from odl.set.space import LinearSpace
-from odl.space import CUDA_AVAILABLE
+from odl.core.util.utility import arraynd_repr, arraynd_str
+from odl.core.operator.operator import Operator
+from odl.core.space.base_ntuples import NtuplesBase, FnBase
+from odl.core.space.ntuples import Ntuples, Rn, Cn
+from odl.core.set.sets import Set, RealNumbers, ComplexNumbers
+from odl.core.set.space import LinearSpace
+from odl.core.space import CUDA_AVAILABLE
+from odl.core.util.utility import with_metaclass
 if CUDA_AVAILABLE:
-    from odl.space.cu_ntuples import CudaNtuples, CudaRn
+    from odl.core.space.cu_ntuples import CudaNtuples, CudaRn
     CudaCn = type(None)  # TODO: add CudaCn to imports once it is implemented
 else:
     CudaRn = CudaCn = CudaNtuples = type(None)

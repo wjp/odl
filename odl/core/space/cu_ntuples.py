@@ -27,8 +27,8 @@ from builtins import int, super
 import numpy as np
 
 # ODL imports
-from odl.space.base_ntuples import NtuplesBase, FnBase, _FnWeightingBase
-from odl.util.utility import is_real_dtype, dtype_repr, with_metaclass
+from odl.core.space.base_ntuples import NtuplesBase, FnBase, _FnWeightingBase
+from odl.core.util.utility import is_real_dtype, dtype_repr
 import odlpp.odlpp_cuda as cuda
 
 

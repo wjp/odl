@@ -19,17 +19,16 @@
 
 # Imports for common Python 2/3 codebase
 from __future__ import print_function, division, absolute_import
-
-from builtins import int, object, str, zip
-from odl.util.utility import with_metaclass
 from future import standard_library
 standard_library.install_aliases()
+from builtins import int, object, str, zip
 
 # External
 from abc import ABCMeta, abstractmethod
 from numbers import Integral, Real, Complex
 
-# ODL
+# Internal
+from odl.core.util.utility import with_metaclass
 
 
 __all__ = ('Set', 'EmptySet', 'UniversalSet', 'Integers', 'RealNumbers',

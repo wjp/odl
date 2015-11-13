@@ -33,7 +33,7 @@ from numbers import Integral
 import numpy as np
 
 # ODL imports
-from odl.set.space import LinearSpace
+from odl.core.set.space import LinearSpace
 
 
 __all__ = ('ProductSpace',)

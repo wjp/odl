@@ -30,10 +30,10 @@ from math import sqrt
 import numpy as np
 
 # ODL imports
-from odl.set.sets import Set, RealNumbers, ComplexNumbers
-from odl.set.space import LinearSpace
-from odl.util.utility import (array1d_repr, array1d_str, dtype_repr,
-                              is_real_dtype, with_metaclass)
+from odl.core.set.sets import Set, RealNumbers, ComplexNumbers
+from odl.core.set.space import LinearSpace
+from odl.core.util.utility import (array1d_repr, array1d_str, dtype_repr,
+                                   is_real_dtype, with_metaclass)
 
 
 __all__ = ('NtuplesBase', 'FnBase', '_FnWeightingBase')

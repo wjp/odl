@@ -24,9 +24,9 @@ standard_library.install_aliases()
 from builtins import super
 
 # ODL imports
-from odl.operator.operator import Operator
-from odl.set.pspace import ProductSpace
-from odl.set.space import LinearSpace
+from odl.core.operator.operator import Operator
+from odl.core.set.pspace import ProductSpace
+from odl.core.set.space import LinearSpace
 
 
 __all__ = ('ScalingOperator', 'ZeroOperator', 'IdentityOperator',
@@ -433,7 +433,7 @@ class InnerProductAdjointOperator(Operator):
         True
         """
         out.lincomb(x, self.vector)
-    
+
     @property
     def adjoint(self):
         return InnerProductOperator(self.vector)

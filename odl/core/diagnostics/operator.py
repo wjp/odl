@@ -25,8 +25,8 @@ from builtins import object
 import numpy as np
 
 # Internal
-from odl.diagnostics.examples import vector_examples, samples
-from odl.util.testutils import FailCounter
+from odl.core.diagnostics.examples import vector_examples, samples
+from odl.core.util.testutils import FailCounter
 
 
 __all__ = ('OperatorTest',)

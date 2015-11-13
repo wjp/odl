@@ -31,15 +31,15 @@ from __future__ import print_function, division, absolute_import
 from future import standard_library
 standard_library.install_aliases()
 from builtins import object, super
-from odl.util.utility import with_metaclass
 
 # External module imports
 from abc import ABCMeta
 from numbers import Number, Integral
 
 # ODL imports
-from odl.set.space import LinearSpace, UniversalSpace
-from odl.set.sets import Set, UniversalSet, Field
+from odl.core.set.space import LinearSpace, UniversalSpace
+from odl.core.set.sets import Set, UniversalSet, Field
+from odl.core.util.utility import with_metaclass
 
 __all__ = ('Operator', 'OperatorComp', 'OperatorSum',
            'OperatorLeftScalarMult', 'OperatorRightScalarMult',
