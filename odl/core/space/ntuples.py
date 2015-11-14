@@ -2192,10 +2192,12 @@ class _FnNoWeighting(FnConstWeighting):
             dist_using_inner = kwargs.pop('dist_using_inner', False)
         elif len(args) == 1:
             exponent = args[0]
+            args = args[1:]
             dist_using_inner = kwargs.pop('dist_using_inner', False)
         else:
             exponent = args[0]
             dist_using_inner = args[1]
+            args = args[2:]
 
         if exponent == 2.0 and not dist_using_inner:
             if not cls._instance:

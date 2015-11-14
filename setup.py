@@ -48,6 +48,7 @@ if os.environ.get('READTHEDOCS', None) == 'True':
     requires = ''
 else:
     requires = """
+    setuptools
     future >= 0.14
     numpy >= 1.8
     scipy >= 0.14
@@ -79,9 +80,11 @@ setup(name='odl.core',
       url='https://github.com/odlgroup/odl',
       description='Operator Discretization Library',
       license='GPLv3',
+#      packages=['odl', 'odl.core'],
       packages=find_packages(exclude=['*test*']),
       install_requires=[requires],
-      package_dir={'odl': 'odl'},
+      package_dir={'': '.'},
+      namespace_packages=['odl'],
       tests_require=['pytest'],
       cmdclass={'test': PyTest},
       extras_require={

@@ -25,9 +25,9 @@ from builtins import object
 from copy import copy, deepcopy
 
 # Internal
-from odl.set.sets import Set
-from odl.diagnostics.examples import samples
-from odl.util.testutils import FailCounter
+from odl.core.set.sets import Set
+from odl.core.diagnostics.examples import samples
+from odl.core.util.testutils import FailCounter
 
 __all__ = ('SpaceTest',)
 
@@ -745,5 +745,5 @@ class SpaceTest(object):
         return 'SpaceTest({!r})'.format(self.space)
 
 if __name__ == '__main__':
-    from odl.space.ntuples import Rn
+    from odl.core.space.ntuples import Rn
     SpaceTest(Rn(10)).run_tests()
