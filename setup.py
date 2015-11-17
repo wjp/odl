@@ -19,7 +19,7 @@
 
 Installation command:
 
-	pip install [--user] [--editable] .
+    pip install [--user] [--editable] .
 """
 
 from __future__ import print_function, absolute_import
@@ -32,12 +32,22 @@ import sys
 __version__ = '0.9b1'
 
 if os.environ.get('READTHEDOCS', None) == 'True':
-    #Mock requires in conf.py
+    # Mock requires in conf.py
     requires = ''
     test_requires = []
+    wavelet_requires = []
+    fft_requires = []
 else:
-    requires = open(os.path.join(os.path.dirname(__file__), 'requirements.txt')).readlines()
-    test_requires = open(os.path.join(os.path.dirname(__file__), 'test_requirements.txt')).readlines()
+    requires = open(
+        os.path.join(os.path.dirname(__file__),
+                     'requirements.txt')).readlines()
+    test_requires = open(
+        os.path.join(os.path.dirname(__file__),
+                     'test_requirements.txt')).readlines()
+
+    wavelet_requires = ['PyWavelets']
+    fft_requires = ['pyfftw']
+
 
 class PyTest(TestCommand):
     user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
@@ -70,5 +80,7 @@ setup(name='odl',
       tests_require=['pytest'],
       cmdclass={'test': PyTest},
       extras_require={
-          'testing': test_requires
+          'testing': test_requires,
+          'wavelets': wavelet_requires,
+          'fft': fft_requires
       })
