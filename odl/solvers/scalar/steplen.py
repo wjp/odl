@@ -30,7 +30,8 @@ from math import ceil, log
 from odl.util.utility import with_metaclass
 
 __all__ = ('StepLength', 'LineSearch',
-           'BacktrackingLineSearch', 'ConstantLineSearch')
+           'BacktrackingLineSearch', 'ConstantLineSearch',
+           'BarzilaiBorweinStep')
 
 
 # TODO: find a good name
