@@ -57,8 +57,8 @@ def test_barzilai_borwein_step():
 
     # Test #2
     Aop = odl.IdentityOperator(rn)
-    x = np.array([1,2,3])
-    y = np.array([4,5,6])
+    x = np.array([1, 2, 3])
+    y = np.array([4, 5, 6])
     b = np.ones(n)
 
     x = rn.element(x)
@@ -67,7 +67,7 @@ def test_barzilai_borwein_step():
     step_param = odl.solvers.BarzilaiBorweinStep(
         lambda x: Aop.adjoint(Aop(x) - rhs))
     step = step_param(y, x)
-    #With such choices of x,y, and Aop step == 1.0
+    # With such choices of x,y, and Aop step == 1.0
     assert almost_equal(step, 1.0)
 
 
