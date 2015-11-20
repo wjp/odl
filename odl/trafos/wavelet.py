@@ -27,3 +27,8 @@ standard_library.install_aliases()
 # Internal
 
 __all__ = ()
+
+
+if __name__ == '__main__':
+    from doctest import testmod, NORMALIZE_WHITESPACE
+    testmod(optionflags=NORMALIZE_WHITESPACE)
