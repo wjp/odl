@@ -94,52 +94,62 @@ def reciprocal(grid, halfcomplex=False, even_shift=False):
         less than zero. This is related to the fact that for real-valued
         functions, the other half is the mirrored complex conjugate of
         the given half and therefore needs not be stored.
-    even_shift : `bool`, optional
+    even_shift : `bool` or iterable, optional
         In dimensions with even number of samples, the point-symmetric
         reciprocal grid does not contain 0. If `True`, the grid is
         shifted by half a stride in the negative direction
         such that 0 falls on a grid point.
+        With a boolean array or iterable, this option is applied
+        separately on each axis. At least ``grid.ndim`` values must be
+        provided.
 
     Returns
     -------
     recip : :class:`~odl.RegularGrid`
         The reciprocal grid
     """
-    rmin = []
-    rmax = []
-    rsamples = []
+    try:
+        even_shift = [bool(even_shift[i]) for i in range(grid.ndim)]
+    except IndexError:
+        raise ValueError('boolean shift iterable gives too few entries '
+                         '({} < {}).'.format(i, grid.ndim))
+    except TypeError:
+        even_shift = [bool(even_shift)] * grid.ndim
 
-    for nsamp, stride in zip(grid.shape, grid.stride):
-        if nsamp % 2:
-            rmin.append(-pi * stride + pi / (stride * nsamp))
-            if halfcomplex:
-                rmax.append(0)
-                rsamples.append(nsamp + 1 / 2)
-            else:
-                rmax.append(-rmin[-1])
-                rsamples.append(nsamp)
-        elif even_shift:  # Shift left to include 0
-            rmin.append(-pi * stride)
-            if halfcomplex:
-                rmax.append(0)
-                rsamples.append(nsamp / 2 + 1)
-            else:
-                rmax.append(-rmin[-1] - pi / (stride * nsamp))
-                rsamples.append(nsamp)
+    rmin = np.empty_like(grid.min_pt)
+    rmax = np.empty_like(grid.max_pt)
+    rsamples = list(grid.shape)
+
+    stride = grid.stride
+    shape = np.array(grid.shape)
+
+    # Odd axes -> simply make symmetric
+    odd = np.where(shape % 2 == 1)
+    rmin[odd] = (-1.0 + 1.0 / shape[odd]) * pi / stride[odd]
+    rmax[odd] = -rmin[odd]
+
+    # Even shifted axes
+    even_s = np.where(np.logical_and(shape % 2 == 0, even_shift))
+    rmin[even_s] = -pi / stride[even_s]
+    # Length min->max increases by double the shift, so we
+    # have to compensate by a full stride
+    rmax[even_s] = (-rmin[even_s] - 2 * pi / (stride[even_s] * shape[even_s]))
+
+    # Even non-shifted axes
+    even_no_s = np.where(np.logical_and(shape % 2 == 0,
+                                        np.logical_not(even_shift)))
+    rmin[even_no_s] = (-1.0 + 1.0 / shape[even_no_s]) * pi / stride[even_no_s]
+    rmax[even_no_s] = -rmin[even_no_s]
+
+    # Change last axis shape and max if halfcomplex
+    if halfcomplex:
+        rsamples[-1] = shape[-1] // 2 + 1
+        if shape[-1] % 2 == 1 or even_shift[-1]:
+            rmax[-1] = 0
         else:
-            rmin.append(-pi * stride + pi / (stride * nsamp))
-            if halfcomplex:
-                rmax.append(- pi / (stride * nsamp))
-                rsamples.append(nsamp / 2 + 1)
-            else:
-                rmax.append(-rmin[-1])
-                rsamples.append(nsamp)
+            rmax[-1] = pi / (shape[-1] * stride[-1])
 
-    print(rmin)
-    print(rmax)
-    print(rsamples)
-
-    return RegularGrid(rmin, rmax, rsamples)
+    return RegularGrid(rmin, rmax, rsamples, as_midp=False)
 
 
 class DiscreteFourierTrafo(Operator):
