@@ -229,7 +229,7 @@ def dft_preproc_data(dfunc, shift=True):
             arr = -2 * np.mod(indices, 2) + 1
         else:
             indices = np.arange(length, dtype=float)
-            arr = np.exp(1j * indices * (1 - 1.0 / length))
+            arr = np.exp(1j * pi * indices * (1 - 1.0 / length))
         return arr
 
     onedim_arrs = [_onedim_arr(nsamp, shft)

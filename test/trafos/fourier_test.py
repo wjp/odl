@@ -282,15 +282,10 @@ def test_dft_preproc_data():
 
         correct_arr.append(np.exp(1j * np.pi * argsum))
 
-    correct_arr = np.array(correct_arr).reshape(shape)
-
     dfunc = discr.one()
     dft_preproc_data(dfunc, shift=False)
 
-    print(dfunc.asarray())
-    print(correct_arr)
-
-    assert all_almost_equal(dfunc, correct_arr)
+    assert all_almost_equal(dfunc.ntuple, correct_arr)
 
 
 if __name__ == '__main__':
