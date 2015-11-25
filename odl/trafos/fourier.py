@@ -175,10 +175,10 @@ def reciprocal(grid, shift=True, halfcomplex=False):
 
 
 def dft_preproc_data(dfunc, shift=True):
-    """Preprocess the real-space data before forward FT.
+    """Pre-process the real-space data before DFT.
 
     This function multiplies the given data with the separable
-    discrete function
+    function
 
         :math:`p(x) = e^{-i(x-x_0)^{\mathrm{T}}\\xi_0},`
 
@@ -186,7 +186,7 @@ def dft_preproc_data(dfunc, shift=True):
     the real space and reciprocal grids, respectively. In discretized
     form, this function becomes for each axis separately an array
 
-        :math:`p_k = e^{-i k (s \odot \\xi_0)}.`
+        :math:`p_k = e^{-i k (s \\xi_0)}.`
 
     If the reciprocal grid is symmetric, it is
     :math:`\\xi_0 =  \pi/s (-1 + 1/N)`, hence
@@ -221,6 +221,56 @@ def dft_preproc_data(dfunc, shift=True):
 
     nsamples = dfunc.space.grid.shape
     shift_lst = _shift_list(shift, dfunc.ndim)
+
+    def _onedim_arr(length, shift):
+        if shift:
+            # (-1)^indices
+            indices = np.arange(length, dtype='int8')
+            arr = -2 * np.mod(indices, 2) + 1
+        else:
+            indices = np.arange(length, dtype=float)
+            arr = np.exp(1j * pi * indices * (1 - 1.0 / length))
+        return arr
+
+    onedim_arrs = [_onedim_arr(nsamp, shft)
+                   for nsamp, shft in zip(nsamples, shift_lst)]
+    meshgrid = sparse_meshgrid(*onedim_arrs, order=dfunc.space.order)
+
+    # Multiply with broadcasting
+    for vec in meshgrid:
+        np.multiply(dfunc, vec, out=dfunc.asarray())
+
+
+def dft_postproc_data(dfunc, rgrid):
+    """Post-process the Fourier-space data after DFT.
+
+    This function multiplies the given data with the separable
+    function
+
+        :math:`q(\\xi) = e^{-i x_0^{\mathrm{T}}\\xi},`
+
+    where :math:`x_0` :math:`\\xi_0` are the minimum coodinates of
+    the real space and reciprocal grids, respectively. In discretized
+    form, this function becomes for each axis separately an array
+
+        :math:`q_k = e^{-i x_0
+        \\big(\\xi_0 + \\frac{2\pi k}{s N}\\big)}.`
+
+    Parameters
+    ----------
+    dfunc : `DiscreteLpVector`
+        Discrete function to be post-processed. Changes are made
+        in place.
+    rgrid : `odl.RegularGrid`
+        Reciprocal grid of the transformed function
+
+    Returns
+    -------
+    `None`
+    """
+    nsamples = dfunc.space.grid.shape
+
+    # TODO: continue here
 
     def _onedim_arr(length, shift):
         if shift:
