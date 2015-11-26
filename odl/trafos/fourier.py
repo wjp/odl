@@ -270,7 +270,7 @@ def dft_postproc_data(dfunc, x0):
     """
     rgrid = dfunc.space.grid
 
-    onedim_arrs = [np.exp(-1j * x0 * xi)
+    onedim_arrs = [np.exp(-1j * x * xi)
                    for x, xi in zip(x0, rgrid.coord_vectors)]
     meshgrid = sparse_meshgrid(*onedim_arrs, order=dfunc.space.order)
 

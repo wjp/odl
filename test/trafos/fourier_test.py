@@ -314,18 +314,23 @@ def test_dft_postproc_data():
 
     assert all_almost_equal(dfunc.ntuple, correct_arr)
 
-#    # Without shift
-#    correct_arr = []
-#    for i, j, k in product(range(shape[0]), range(shape[1]), range(shape[2])):
-#        argsum = sum((idx * (1 - 1 / shp))
-#                     for idx, shp in zip((i, j, k), shape))
-#
-#        correct_arr.append(np.exp(1j * np.pi * argsum))
-#
-#    dfunc = discr.one()
-#    dft_preproc_data(dfunc, shift=False)
-#
-#    assert all_almost_equal(dfunc.ntuple, correct_arr)
+    # Without shift
+    rgrid = reciprocal(space_discr.grid, shift=False)
+    freq_cube = rgrid.convex_hull()
+    recip_space_discr = odl.DiscreteLp(
+        odl.FunctionSpace(freq_cube, field=odl.ComplexNumbers()),
+        rgrid, odl.Cn(np.prod(shape)))
+
+    correct_arr = []
+    x0 = space_discr.grid.min_pt
+    xi_0, rstride, nsamp = rgrid.min_pt, rgrid.stride, rgrid.shape
+    for k in product(range(nsamp[0]), range(nsamp[1]), range(nsamp[2])):
+        correct_arr.append(np.exp(-1j * np.dot(x0, xi_0 + rstride * k)))
+
+    dfunc = recip_space_discr.one()
+    dft_postproc_data(dfunc, x0)
+
+    assert all_almost_equal(dfunc.ntuple, correct_arr)
 
 if __name__ == '__main__':
     pytest.main(str(__file__.replace('\\', '/') + ' -v'))
