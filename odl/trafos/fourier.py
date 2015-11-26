@@ -241,7 +241,7 @@ def dft_preproc_data(dfunc, shift=True):
         np.multiply(dfunc, vec, out=dfunc.asarray())
 
 
-def dft_postproc_data(dfunc, rgrid):
+def dft_postproc_data(dfunc, x0):
     """Post-process the Fourier-space data after DFT.
 
     This function multiplies the given data with the separable
@@ -259,31 +259,19 @@ def dft_postproc_data(dfunc, rgrid):
     Parameters
     ----------
     dfunc : `DiscreteLpVector`
-        Discrete function to be post-processed. Changes are made
-        in place.
-    rgrid : `odl.RegularGrid`
-        Reciprocal grid of the transformed function
+        Discrete function to be post-processed. Its grid is assumed
+        to be the reciprocal grid. Changes are made in place.
+    x0 : array-like
+        Minimal grid point of the spatial grid before transform
 
     Returns
     -------
     `None`
     """
-    nsamples = dfunc.space.grid.shape
+    rgrid = dfunc.space.grid
 
-    # TODO: continue here
-
-    def _onedim_arr(length, shift):
-        if shift:
-            # (-1)^indices
-            indices = np.arange(length, dtype='int8')
-            arr = -2 * np.mod(indices, 2) + 1
-        else:
-            indices = np.arange(length, dtype=float)
-            arr = np.exp(1j * pi * indices * (1 - 1.0 / length))
-        return arr
-
-    onedim_arrs = [_onedim_arr(nsamp, shft)
-                   for nsamp, shft in zip(nsamples, shift_lst)]
+    onedim_arrs = [np.exp(-1j * x0 * xi)
+                   for x, xi in zip(x0, rgrid.coord_vectors)]
     meshgrid = sparse_meshgrid(*onedim_arrs, order=dfunc.space.order)
 
     # Multiply with broadcasting

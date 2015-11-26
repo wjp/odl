@@ -116,7 +116,7 @@ class FunctionSetMapping(Operator):
                                 ''.format(dspace))
 
             if fset.field != dspace.field:
-                raise ValueError('field {} of the function space and field'
+                raise ValueError('field {} of the function space and field '
                                  '{} of the data space are not equal.'
                                  ''.format(fset.field, dspace.field))
 
