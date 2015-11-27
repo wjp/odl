@@ -148,8 +148,13 @@ try:
     import pytest
     skip_if_no_cuda = pytest.mark.skipif("not odl.CUDA_AVAILABLE",
                                          reason='CUDA not available')
+    skip_if_no_pyfftw = pytest.mark.skipif("not odl.trafos.PYFFTW_AVAILABLE",
+                                           reason='pyfftw not available')
 except ImportError:
     def skip_if_no_cuda(function):
+        return function
+
+    def skip_if_no_pyfftw(function):
         return function
 
 
