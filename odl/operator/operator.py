@@ -1472,6 +1472,476 @@ def simple_operator(call=None, apply=None, inv=None, deriv=None,
     return simple_op_cls(dom, ran, linear)
 
 
+def _signature_from_spec(func):
+    """Return the signature of a python function as a string.
+
+    Parameters
+    ----------
+    func : `function`
+        Function whose signature to compile
+
+    Returns
+    -------
+    sig : `str`
+        Signature of the function
+    """
+    import sys
+    import inspect
+
+    py3 = (sys.version_info.major > 2)
+    if py3:
+        spec = inspect.getfullargspec(func)
+    else:
+        spec = inspect.getargspec(func)
+
+    posargs = spec.args
+    defaults = spec.defaults
+    kwargs = spec.varkw if py3 else spec.keywords
+    deflen = 0 if defaults is None else len(defaults)
+    nodeflen = 0 if posargs is None else len(posargs) - deflen
+    if nodeflen > 0:
+        argstr = ', '.join(posargs[:nodeflen])
+    else:
+        argstr = ''
+
+    if defaults:
+        if argstr:
+            argstr += ', '
+        argstr += ', '.join(['{}={}'.format(arg, dval)
+                             for arg, dval in zip(posargs[nodeflen:],
+                                                  defaults)])
+    if py3:
+        kw_only = spec.kwonlyargs
+        kw_only_defaults = spec.kwonlydefaults
+        if argstr:
+            argstr += ', '
+        if kw_only:
+            argstr += ', *, ' + sum('{}={}'.format(arg, dval)
+                                    for arg, dval in zip(kw_only,
+                                                         kw_only_defaults))
+    if kwargs:
+        if argstr:
+            argstr += ', '
+        argstr += '**{}'.format(kwargs)
+
+    return '{}({})'.format(func.__name__, argstr)
+
+
+def _dispatch_call_args(cls=None, bound_call=None, unbound_call=None,
+                        attr='_call'):
+    """Check the arguments of ``_call()`` or similar for conformity.
+
+    The ``_call()`` method of :class:`Operator` is allowed to have the
+    following signatures:
+
+    Python 2 and 3:
+        - ``_call(self, x)``
+        - ``_call(self, vec, out)``
+        - ``_call(self, x, out=None)``
+
+    Python 3 only:
+        - ``_call(self, x, *, out=None)`` (``out`` as keyword-only
+          argument)
+
+    For disambiguation, the instance name (the first argument) **must**
+    be 'self'.
+
+    The name of the ``out`` argument **must** be 'out', the second
+    argument may have any name.
+
+    Additional variable ``**kwargs`` are also allowed.
+
+    Not allowed:
+        - ``_call(self)`` -- No arguments except instance:
+        - ``_call(x)`` -- 'self' missing, i.e. ``@staticmethod``
+        - ``_call(cls, x)``  -- 'self' missing, i.e. ``@classmethod``
+        - ``_call(self, out, x)`` -- ``out`` as second argument
+        - ``_call(self, *x)`` -- Variable arguments
+        - ``_call(self, x, y, out=None)`` -- more positional arguments
+        - ``_call(self, x, out=False)`` -- default other than `None` for
+          ``out``
+
+    In particular, static or class methods are not allowed.
+
+    Parameters
+    ----------
+    cls : `class`, optional
+        The ``_call()`` method of this class is checked. If omitted,
+        provide ``unbound_call`` instead to check directly.
+    bound_call: `callable`, optional
+        Check this bound method instead of ``cls``
+    unbound_call: `callable`, optional
+        Check this unbound function instead of ``cls``
+    attr : `string`, optional
+        Check this attribute instead of ``_call``, e.g. ``__call__``
+
+    Returns
+    -------
+    has_out : `bool`
+        Whether the call has an ``out`` argument
+    out_is_optional : `bool`
+        Whether the ``out`` argument is optional
+    spec : :class:`~inspect.ArgSpec` or :class:`~inspect.FullArgSpec`
+        Argument specification of the checked call function
+
+    Raises
+    ------
+    ValueError
+        if the signature of the function is malformed
+    """
+
+    import inspect
+    import sys
+
+    py3 = (sys.version_info.major > 2)
+
+    py2_specs = ('_call(self, x[, **kwargs])',
+                 '_call(self, x, out[, **kwargs])',
+                 '_call(self, x, out=None[, **kwargs])')
+
+    py3only_specs = ('_call(self, x, *, out=None[, **kwargs])',)
+
+    spec_msg = "\nPossible signatures are ('[, **kwargs]' means optional):\n\n"
+    spec_msg += '\n'.join(py2_specs)
+    if py3:
+        spec_msg += '\n' + '\n'.join(py3only_specs)
+    spec_msg += '\n\nStatic or class methods are not allowed.'
+
+    if sum(arg is not None for arg in (cls, bound_call, unbound_call)) != 1:
+        raise ValueError('Exactly one object to check must be given.')
+
+    if cls is not None:
+        for parent in cls.mro():
+            call = parent.__dict__.get(attr, None)
+            if call is not None:
+                break
+
+        # Static and class methods are not allowed
+        if isinstance(call, staticmethod):
+            raise TypeError("'{}.{}' is a static method. "
+                            "".format(cls.__name__, attr) + spec_msg)
+        elif isinstance(call, classmethod):
+            raise TypeError("'{}.{}' is a class method. "
+                            "".format(cls.__name__, attr) + spec_msg)
+
+    elif bound_call is not None:
+        call = bound_call
+    else:
+        call = unbound_call
+
+    if py3:
+        # support kw-only args and annotations
+        spec = inspect.getfullargspec(call)
+        kw_only = spec.kwonlyargs
+        kw_only_defaults = spec.kwonlydefaults
+    else:
+        spec = inspect.getargspec(call)
+        kw_only = ()
+        kw_only_defaults = {}
+
+    signature = _signature_from_spec(call)
+#    print(spec)
+
+    pos_args = spec.args
+    if unbound_call is not None:
+        # Add 'self' to positional arg list to satisfy the checker
+        pos_args.insert(0, 'self')
+
+    pos_defaults = spec.defaults
+    varargs = spec.varargs
+
+    out_optional = False
+
+    # Variable args are not allowed
+    if varargs is not None:
+        raise ValueError("Bad signature '{}': variable arguments not allowed."
+                         " ".format(signature) + spec_msg)
+
+    if len(pos_args) not in (2, 3):
+        raise ValueError("Bad signature '{}'. ".format(signature) + spec_msg)
+
+    # 'self' must be the first argument
+    elif pos_args[0] != 'self':
+        raise ValueError("Bad signature '{}': `self` is not the first "
+                         "argument. ".format(signature) + spec_msg)
+
+    true_pos_args = pos_args[1:]
+    if len(true_pos_args) == 1:  # 'out' kw-only
+        if 'out' in true_pos_args:  # 'out' positional and 'x' kw-only -> no
+            raise ValueError("Bad signature '{}': `out` cannot be the only "
+                             "positional argument."
+                             " ".format(signature) + spec_msg)
+        else:
+            if len(kw_only) == 0:
+                has_out = False
+            elif len(kw_only) == 1:
+                if 'out' not in kw_only:
+                    raise ValueError(
+                        "Bad signature '{}': output parameter must be called "
+                        "'out', got '{}'."
+                        " ".format(signature, kw_only[0]) +
+                        spec_msg)
+                else:
+                    has_out = True
+                    if kw_only_defaults['out'] is not None:
+                        raise ValueError(
+                            "Bad signature '{}': `out` can only default to "
+                            "`None`, got '{}'."
+                            " ".format(signature, kw_only_defaults['out']) +
+                            spec_msg)
+                    else:
+                        out_optional = True
+            else:
+                raise ValueError("Bad signature '{}': cannot have more than 2 "
+                                 "keyword-only argument."
+                                 " ".format(signature) + spec_msg)
+
+    elif len(true_pos_args) == 2:  # Both args positional
+        if true_pos_args[0] == 'out':  # out must come second
+            py3_txt = ' or keyword-only. ' if py3 else '. '
+            raise ValueError("Bad signature '{}': `out` can only be the "
+                             "second positional argument".format(signature) +
+                             py3_txt + spec_msg)
+        elif true_pos_args[1] != 'out':  # 'out' must be 'out'
+            raise ValueError("Bad signature '{}': output parameter must "
+                             "be called 'out', got '{}'."
+                             " ".format(signature, true_pos_args[1]) +
+                             spec_msg)
+        else:
+            has_out = True
+            out_optional = bool(pos_defaults)
+            if pos_defaults and pos_defaults[-1] is not None:
+                raise ValueError("Bad signature '{}': `out` can only "
+                                 "default to `None`, got '{}'."
+                                 " ".format(signature, pos_defaults[-1]) +
+                                 spec_msg)
+
+    else:  # Too many positional args
+        raise ValueError("Bad signature '{}': too many positional arguments."
+                         " ".format(signature) + spec_msg)
+
+    return has_out, out_optional, spec
+
+
+def _indent_length(lst):
+    """Calculate indentation length from a string list."""
+    if len(lst) == 0:
+        return 0
+    else:
+        return min((len(line) - len(line.lstrip())
+                   for line in lst if line))
+
+
+def _decompose_doc(obj):
+    """Create a structured dictionary from the docstring of ``obj``.
+
+    The dictionary contains the following entries:
+
+        ``'indent'`` : `int`
+            indentation length
+
+    If ``obj.__doc__`` is not `None`:
+
+        ``0`` : `dict`
+            ``{'underline': '', 'lines': [<summary line>]}``
+
+    If ``obj.__doc__`` has more than one line:
+
+        ``1`` : `dict`
+            ``{'underline': '', 'lines': [<extended summary lines>]}``
+
+    If ``obj.__doc__`` has sections like ``'Parameters'``:
+
+        ``'<section name>'`` : `dict`
+            ``{'underline': <underline string>,
+            'lines': [<section lines>]}``
+    """
+    sect_dict = {}
+    docstring = obj.__doc__
+    if docstring is None:
+        return sect_dict
+
+    # Summary line
+    doclines = docstring.splitlines()
+    sect_dict[0] = {'underline': '', 'lines': doclines[0]}
+    if len(doclines) == 1:
+        return sect_dict
+
+    # Docstring body
+    sect_dict[1] = {'underline': '', 'lines': []}
+    body_lines = doclines[1:]
+    indent = _indent_length(body_lines)
+    sect_dict['indent'] = indent
+    # Dedent - too short lines shouldn't occur, but just in case...
+    body_lines = [line[indent:] if len(line) >= indent else ''
+                  for line in body_lines]
+
+    # Chars which signalize underlining
+    underl_chars = ['-', '~', '=']
+    underl_starts = tuple(c * 4 for c in underl_chars)
+
+    cur_secname = 1  # start with section 1
+    for line, nextline in zip(body_lines[:-1], body_lines[1:]):
+        if nextline.startswith(underl_starts):
+            # New dict entry
+            cur_secname = line.rstrip()
+            sect_dict[cur_secname] = {'underline': '', 'lines': []}
+        elif line.startswith(underl_starts):
+            # Save as underline string
+            sect_dict[cur_secname]['underline'] = line
+        else:
+            # Save as regular line
+            sect_dict[cur_secname]['lines'].append(line.rstrip())
+
+    return sect_dict
+
+
+def _decompose_params(lst):
+    """Create a structured dictionary from the 'Parameters' line list.
+
+    This function looks for unindented lines of the form
+    ``<arg> : <type>``. It then creates an entry
+
+        ``'<arg>'`` :
+            ``{'typename': <type name>, 'lines': [<arg section lines>]}``
+
+    in the dictionary and adds the lines until the next such line to
+    the list.
+    """
+
+    def is_arg_line(line):
+        # Empty or indented line
+        if not line or line.startswith(' '):
+            return False
+        argname, sep, _ = line.partition(':')
+
+        # No colon found or colon comes first
+        if not sep or not argname:
+            return False
+
+        # True if argname is a single word, False otherwise
+        return argname.strip().strip("'*").isalpha()
+
+    arg_dict = {}
+    if not lst:
+        return arg_dict
+
+    # Intro text. Shouldn't be there, but anyway...
+    # Possible outro text, which shouldn't be there either, will be added
+    # to the last arg section
+    arg_dict[0] = {'typename': '', 'lines': []}
+
+    cur_key = 0
+    for line in lst:
+        if not is_arg_line(line):
+            arg_dict[cur_key]['lines'].append(line)
+        else:
+            argname, _, typename = line.partition(':')
+            argname = argname.strip().strip("'*")
+            typename = typename.strip()
+            arg_dict[argname] = {'typename': typename, 'lines': []}
+            cur_key = argname
+
+    return arg_dict
+
+
+def _sync_call_args(cls, sdict, attr):
+    """Synchronize argument names etc. between spec and doc.
+
+    This function reads the argument names from the signature of
+    ``cls._call`` (or similar) and adapts the name of the first
+    positional argument (``x``) in the doc according to the spec.
+    For the ``out`` argument, the string ``', optional'`` is added
+    to or removed from the type specification if necessary.
+    """
+    has_out, out_is_optional, spec = _dispatch_call_args(cls, attr=attr)
+    specarg_names = spec.args.remove('self')
+    if spec.keywords is not None:
+        specarg_names.append(spec.keywords)
+
+    docarg_dict = _decompose_params(sdict['Parameters']['lines'])
+    docarg_names = docarg_dict.keys().remove(0)
+
+    wrong_args = [darg for darg in docarg_names if darg not in specarg_names]
+
+    if len(wrong_args) > 1:
+        raise ValueError('arguments {} not in function spec of {}. Cannot '
+                         'resolve ambiguity.'.format(wrong_args,
+                                                     getattr(cls, attr)))
+
+    missing_args = [sarg for sarg in specarg_names if sarg not in docarg_names]
+
+    # TODO: continue here
+
+
+def _compile_call_dict(cls):
+
+    # TODO: this is out of date
+
+    # From class _call: get doc dict, spec, out and kwargs info
+    sdict = _decompose_doc(cls._call)
+    has_out, out_optional, spec = _dispatch_call_args(cls)
+
+    # From Operator.__call__: get doc dict and out & kwargs index
+    std_dict = _decompose_doc(Operator.__call__)
+    std_out_idx, std_out_end_idx = out_info(std_dict)[:2]
+
+    new_dict = {sec: {'underline': '', 'lines': []} for sec in sdict.keys()}
+    new_dict['Parameters'] = {'underline': sdict['Parameters']['underline'],
+                              'lines': []}
+
+    if 'Parameters' in sdict:
+        # Get lines dealing with parameter explanations
+        param_lines = sdict['Parameters']['lines']
+        std_param_lines = std_dict['Parameters']['lines']
+        out_idx, out_end_idx, doc_has_out, doc_out_optional = out_info(sdict)
+        doc_has_kwargs = has_kwargs(sdict)
+
+        if len(param_lines) == 0 or out_idx == 0:
+            # Need to add section on first argument, get its name
+            x_name = spec.args[0]
+
+            # Replace each citation of 'x' in the std doc with the new name
+            for sec in std_dict:
+                for i, line in enumerate(std_dict[sec]['lines']):
+                    line = line.replace("'x'", "'{}'".format(x_name))
+                    line = line.replace("``x``", "``{}``".format(x_name))
+                    line = line.replace("(x)", "({})".format(x_name))
+                    std_dict[sec]['lines'][i] = line
+
+            # Add the section on 'x' with 'x' replaced
+            x_defline = x_name + std_param_lines[0].lstrip("'`x'")
+            new_dict['Parameters']['lines'].append(x_defline)
+            for line in std_dict['Parameters']['lines'][:std_out_idx]:
+                new_dict['Parameters']['lines'].append(line)
+
+        elif has_out and not doc_has_out:
+            # Need to add doc on 'out'
+            out_defline = std_dict['Parameters']['lines'][std_out_idx]
+
+            if out_optional:
+                out_defline += ', optional'
+            new_dict['Parameters']['lines'].append(out_defline)
+
+            for line in std_dict['Parameters']['lines'][std_out_idx + 1:
+                                                        std_out_end_idx]:
+                new_dict['Parameters']['lines'].append(line)
+
+        elif has_out and doc_has_out:
+            # Can just add doc on 'out'
+            for line in sdict['Parameters']['lines'][out_idx:out_end_idx]:
+                new_dict['Parameters']['lines'].append(line)
+
+        else:
+            # Should not happen
+            raise ValueError("'out section in doc but no 'out' parameter.'")
+
+        has_kwargs = spec.keywords is not None
+        if has_kwargs and not doc_has_kwargs:
+            # Need to add doc on kwargs
+            pass
+
+
 if __name__ == '__main__':
     from doctest import testmod, NORMALIZE_WHITESPACE
     testmod(optionflags=NORMALIZE_WHITESPACE)
